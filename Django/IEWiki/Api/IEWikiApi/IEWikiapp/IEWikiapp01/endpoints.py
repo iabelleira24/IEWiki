@@ -33,3 +33,11 @@ def json_4(request):
 
 
     return JsonResponse([1, 2, 3], safe=False)
+
+@csrf_exempt
+def json_5(request):
+    if request.method != "GET":
+        return JsonResponse({"error": "HTTP method not supported"}, status=405)
+
+
+    return JsonResponse(["a", "b", "c"], safe=False)
