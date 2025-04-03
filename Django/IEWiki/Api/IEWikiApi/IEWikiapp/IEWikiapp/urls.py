@@ -16,7 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from IEWikiapp01.endpoints import json_1
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('json-1/', json_1),
 ]
