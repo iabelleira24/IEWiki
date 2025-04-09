@@ -49,3 +49,35 @@ def json_6(request):
 
 
     return JsonResponse([{"nombre": "Iago"}, {"nombre": "Christian"}], safe=False)
+
+
+@csrf_exempt
+def juego_1(request, precio):
+    if request.method != "GET":
+        return JsonResponse({"error": "HTTP method not supported"}, status=405)
+
+
+    return JsonResponse({}, status=200)
+
+@csrf_exempt
+def juego_2(request, id, precio):
+    if request.method != "GET":
+        return JsonResponse({"error": "HTTP method not supported"}, status=405)
+
+
+    return JsonResponse({"nombre": "gta VI","id": id, "precio":precio}, status=200)
+
+@csrf_exempt
+def juego_3(request, precio):
+    if request.method != "GET":
+        return JsonResponse({"error": "HTTP method not supported"}, status=405)
+
+
+    return JsonResponse({"nombre": "gta VI","precio": precio}, status=200)
+
+def juego_4(request, id):
+    if request.method != "GET":
+        return JsonResponse({"error": "HTTP method not supported"}, status=405)
+
+
+    return JsonResponse({"nombre": "gta VI","id": id}, status=200)
