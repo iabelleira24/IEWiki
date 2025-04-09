@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from IEWikiapp01.endpoints import json_1, json_2, json_3, json_4, json_5, json_6, juego_1, juego_2, juego_3, juego_4, pregunta_1
+from IEWikiapp01.endpoints import json_1, json_2, json_3, json_4, json_5, json_6, juego_1, juego_2, juego_3, juego_4, pregunta_1, pregunta_2
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -31,5 +31,6 @@ urlpatterns = [
     path('juego-3/<precio>/', juego_3, name='juego'),
     path('juego-4/<int:id>/', juego_4, name='juego'),
     path ('pregunta-1/', pregunta_1),
+    path ('pregunta-2/<personaje>/', pregunta_2),
 
 ]

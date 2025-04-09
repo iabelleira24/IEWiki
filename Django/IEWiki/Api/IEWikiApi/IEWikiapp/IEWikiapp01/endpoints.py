@@ -87,3 +87,9 @@ def pregunta_1 (request):
         equipo = request.GET.get('equipo','Raimon')
         print(f"Es un buen equipo el {equipo}!")
         return JsonResponse({'mensaje':f'Es un buen equipo el {equipo}!'})
+
+def pregunta_2 (request, personaje):
+    if request.method == "GET":
+        equipo = request.GET.get('equipo','Raimon')
+        print(f"Es un buen equipo el {equipo}!")
+        return JsonResponse({'mensaje':f'Es un buen equipo el {equipo}!', "personaje": personaje}, status = 200)
