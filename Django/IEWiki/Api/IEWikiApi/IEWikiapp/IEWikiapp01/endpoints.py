@@ -93,3 +93,24 @@ def pregunta_2 (request, personaje):
         equipo = request.GET.get('equipo','Raimon')
         print(f"Es un buen equipo el {equipo}!")
         return JsonResponse({'mensaje':f'Es un buen equipo el {equipo}!', "personaje": personaje}, status = 200)
+
+
+def pregunta_3 (request):
+    if request.method == "GET":
+        equipo = request.GET.get('equipo')
+        personaje = request.GET.get('personaje')
+
+        if equipo and personaje:
+            print(f"Equipo: {equipo}, Personaje: {personaje}")
+            mensaje = f"{personaje} juega en el equipo {equipo}."
+        elif equipo and not personaje:
+            print(f"Solo se recibió el equipo: {equipo}")
+            mensaje = f"El equipo proporcionado es {equipo}."
+        elif personaje and not equipo:
+            print(f"Solo se recibió el jugador: {personaje}")
+            mensaje = f"El personaje proporcionado es {personaje}."
+        else:
+            print("No se recibió ni equipo ni personaje.")
+            mensaje = "No se proporcionaron parametros."
+
+        return JsonResponse({'mensaje': mensaje})
