@@ -81,3 +81,9 @@ def juego_4(request, id):
 
 
     return JsonResponse({"nombre": "gta VI","id": id}, status=200)
+
+def pregunta_1 (request):
+    if request.method == "GET":
+        equipo = request.GET.get('equipo','Raimon')
+        print(f"Es un buen equipo el {equipo}!")
+        return JsonResponse({'mensaje':f'Es un buen equipo el {equipo}!'})
