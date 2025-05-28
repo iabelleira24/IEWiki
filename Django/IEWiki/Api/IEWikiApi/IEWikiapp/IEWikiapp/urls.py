@@ -14,18 +14,18 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
-from IEWikiapp01.endpoints import json_1, json_2, json_3, json_4, json_5, json_6, juego_1, juego_2, juego_3, juego_4, pregunta_1, pregunta_2, pregunta_3
+from IEWikiapp01.endpoints import  juego_1, juego_2, juego_3, juego_4, pregunta_1, pregunta_2, pregunta_3, jugador, equipos, jugadores, jugadores_por_equipo, vecinos, presidentes, superheroes, user, sessions
+
+
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('json-1/', json_1),
-    path('json-2/', json_2),
-    path('json-3/', json_3),
-    path('json-4/', json_4),
-    path('json-5/', json_5),
-    path('json-6/', json_6),
+
     path ('juego-1/<precio>/', juego_1 ,name='juego'),
     path('juego-2/<int:id>/<precio>', juego_2, name='juego'),
     path('juego-3/<precio>/', juego_3, name='juego'),
@@ -33,6 +33,16 @@ urlpatterns = [
     path ('pregunta-1/', pregunta_1),
     path ('pregunta-2/<personaje>/', pregunta_2),
     path ('pregunta-3/', pregunta_3),
+    path ('jugadores/', jugadores),
+    path ('jugadores/<id>/', jugador),
+    path ('equipos/', equipos),
+    path ('equipo/<int:equipo_id>/jugadores', jugadores_por_equipo),
+    path ('vecinos/', vecinos),
+    path ('presidentes/', presidentes),
+    path ('superheroes/', superheroes),
+    path ('user/', user),
+    path ('login/', sessions)
 
 
-]
+
+] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
