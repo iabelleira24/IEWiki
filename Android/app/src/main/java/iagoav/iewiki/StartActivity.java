@@ -14,7 +14,7 @@ public class StartActivity extends AppCompatActivity {
 
 
         SharedPreferences prefs = getSharedPreferences("MyPrefs", MODE_PRIVATE);
-        boolean isLoggedIn = prefs.getBoolean("isLoggedIn", false); // false por defecto
+        boolean isLoggedIn = prefs.getBoolean("isLoggedIn", false); // TODO: dejar en false false por defecto
 
         Intent intent;
         if (isLoggedIn) {
@@ -23,7 +23,10 @@ public class StartActivity extends AppCompatActivity {
         } else {
             // Si NO está logueado, ir a LoginActivity
             intent = new Intent(this, LoginActivity.class);
+
         }
+
+
 
         startActivity(intent);
         finish();
