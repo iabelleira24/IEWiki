@@ -1,10 +1,14 @@
 import json
+import secrets
+from urllib import request
 
+from django.contrib.auth.hashers import check_password
 from django.db.models import Q
 from django.http import JsonResponse
+from django.template.defaulttags import now
 from django.views.decorators.csrf import csrf_exempt
 from datetime import date
-from .models import Jugador, Equipo, User
+from .models import Jugador, Equipo, User, Like
 
 
 @csrf_exempt
@@ -96,7 +100,8 @@ def jugadores(request):
              "nombreJ":jugador.nombreJ,
              "posicionJ":jugador.posicionJ,
              "supertecnicaJ":jugador.supertecnicaJ,
-             "equipoJ":jugador.equipoJ.nombreE
+             "equipoJ":jugador.equipoJ.nombreE,
+             "imagenJ": jugador.imagenJ
              } for jugador in jugadores]
 
     return JsonResponse({"jugadores": data}, status=200)
@@ -217,14 +222,14 @@ def user(request):
 
     json_data = json.loads(request.body)
     username = json_data.get("username")
-    name = json_data.get("name")
-    surname = json_data.get("surname")
     password = json_data.get("password")
 
-    User.objects.create(username = username, name = name, surname = surname, password = password)
+    User.objects.create(username = username, password = password)
 
 
     return JsonResponse({"mensaje":"Se ha creado el usuario correctamente"}, status= 201)
+
+
 
 
 @csrf_exempt
@@ -232,21 +237,70 @@ def sessions(request):
     if request.method != "POST":
         return JsonResponse({"error": "Método HTTP no soportado"}, status=405)
 
-    json_data = json.loads(request.body)
-    username = json_data.get("username")
-    password = json_data.get("password")
+    try:
+        data = json.loads(request.body)
+        username = data.get("username")
+        password = data.get("password")
+    except:
+        return JsonResponse({"error": "Solicitud inválida"}, status=400)
+
+    user = User.objects.filter(username=username).first()
+    if user is None:
+        return JsonResponse({"error": "Usuario no encontrado"}, status=404)
+
+    if user.password != password:
+        return JsonResponse({"error": "Contraseña incorrecta"}, status=403)
+
+    token = secrets.token_hex(32)
+    user.tokenSessions = token
+    user.save()
+
+    return JsonResponse({"token": token}, status=201)
+
+
+@csrf_exempt
+def like(request):
+    if request.method != "PUT":
+        return JsonResponse({"error": "Método HTTP no soportado"}, status=405)
+
+    token = request.headers.get('token')
+    if token is None:
+        return JsonResponse({"error": "Token no encontrado"}, status=401)
 
     try:
-        user = User.objects.get(username =username)
-
-        if password == user.password:
-            print("La contraseña de " + user.username + "en BBDD es: " + user.password)
-            return JsonResponse({"mensaje": "Usuario y contraseña correctas"}, status=200)
-
-        return JsonResponse({"error": "password incorrecta."}, status=401)
-
+        user = User.objects.get(tokenSessions=token)
     except User.DoesNotExist:
-        return JsonResponse({"error": "User not found."}, status=404)
+        return JsonResponse({"error": "Token inválido"}, status=401)
+
+    try:
+        data = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Formato JSON inválido"}, status=400)
+
+    jugador_id = data.get("jugadorId")
+    if not jugador_id:
+        return JsonResponse({"error": "ID del jugador no proporcionado"}, status=400)
+
+    try:
+        jugador = Jugador.objects.get(id=jugador_id)
+    except Jugador.DoesNotExist:
+        return JsonResponse({"error": "Jugador no encontrado"}, status=404)
+
+    like_existe = Like.objects.filter(user=user, jugador=jugador).first()
+
+    if like_existe:
+        like_existe.delete()
+        return JsonResponse({
+            "mensaje": f"{jugador.nombreJ} eliminado de favoritos",
+            "favorito": False
+        }, status=200)
+    else:
+        Like.objects.create(user=user, jugador=jugador)
+        return JsonResponse({
+            "mensaje": f"{jugador.nombreJ} añadido a favoritos",
+            "favorito": True
+        }, status=200)
+
 
 
 
