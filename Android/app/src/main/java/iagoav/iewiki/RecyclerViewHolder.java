@@ -17,18 +17,19 @@ import com.squareup.picasso.Picasso;
 public class RecyclerViewHolder extends RecyclerView.ViewHolder {
 
     private TextView textView;
+    private TextView textView2;
     private ImageView imageView;
 
     public RecyclerViewHolder(@NonNull View itemView) {
         super(itemView);
         textView = itemView.findViewById(R.id.nombreE);
         imageView = itemView.findViewById(R.id.imageTeam);
-        textView = itemView.findViewById(R.id.entrenador);
+        textView2 = itemView.findViewById(R.id.entrenador);
     }
 
     public void showData(TeamDTO teamDTO) {
         this.textView.setText(teamDTO.getName());
-        this.textView.setText(teamDTO.getCoach());
+        this.textView2.setText(teamDTO.getCoach());
         String imageUrl = "http://10.0.2.2:8000/" + teamDTO.getImage();
         Picasso.get().load(imageUrl).into(imageView);
 
