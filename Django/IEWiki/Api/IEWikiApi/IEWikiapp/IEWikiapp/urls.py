@@ -18,7 +18,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import path
-from IEWikiapp01.endpoints import  juego_1, juego_2, juego_3, juego_4, pregunta_1, pregunta_2, pregunta_3, jugador, equipos, jugadores, jugadores_por_equipo, vecinos, presidentes, superheroes, user, sessions, like
+from IEWikiapp01.endpoints import  juego_1, juego_2, juego_3, juego_4, pregunta_1, pregunta_2, pregunta_3, jugador, equipos, jugadores, jugadores_por_equipo, vecinos, presidentes, superheroes, user, sessions, like, favoritos
 
 
 
@@ -42,7 +42,9 @@ urlpatterns = [
     path ('superheroes/', superheroes),
     path ('user/', user),
     path ('login/', sessions),
-    path ('like/', like)
+    path ('like/', like),
+    path ('favoritos/', favoritos)
+
 
 
 

@@ -86,8 +86,25 @@ def jugador(request, id):
     except Jugador.DoesNotExist:
         return JsonResponse({"error": "Jugador not found."}, status=404)
 
-    return JsonResponse({"id": j.id,"nombreJ":j.nombreJ, "posicionJ":j.posicionJ, "supertecnicaJ":j.supertecnicaJ, "equipoJ":j.equipoJ.nombreE, "imagenJ":j.imagenJ}, status=200)
+    token = request.headers.get('token')
+    favorito = False
 
+    if token:
+        try:
+            user = User.objects.get(tokenSessions=token)
+            favorito = Like.objects.filter(user=user, jugador=j).exists()
+        except User.DoesNotExist:
+            pass  # Token inválido, dejamos favorito en False
+
+    return JsonResponse({
+        "id": j.id,
+        "nombreJ": j.nombreJ,
+        "posicionJ": j.posicionJ,
+        "supertecnicaJ": j.supertecnicaJ,
+        "equipoJ": j.equipoJ.nombreE,
+        "imagenJ": j.imagenJ,
+        "favorito": favorito
+    }, status=200)
 
 
 @csrf_exempt
@@ -264,7 +281,7 @@ def like(request):
         return JsonResponse({"error": "Método HTTP no soportado"}, status=405)
 
     token = request.headers.get('token')
-    if token is None:
+    if not token:
         return JsonResponse({"error": "Token no encontrado"}, status=401)
 
     try:
@@ -286,10 +303,10 @@ def like(request):
     except Jugador.DoesNotExist:
         return JsonResponse({"error": "Jugador no encontrado"}, status=404)
 
-    like_existe = Like.objects.filter(user=user, jugador=jugador).first()
+    like_obj = Like.objects.filter(user=user, jugador=jugador).first()
 
-    if like_existe:
-        like_existe.delete()
+    if like_obj:
+        like_obj.delete()
         return JsonResponse({
             "mensaje": f"{jugador.nombreJ} eliminado de favoritos",
             "favorito": False
@@ -304,4 +321,26 @@ def like(request):
 
 
 
+@csrf_exempt
+def favoritos(request):
+    if request.method != "GET":
+        return JsonResponse({"error": "Método HTTP no soportado"}, status=405)
 
+    token = request.headers.get('token')
+    if not token:
+        return JsonResponse({"error": "Token no encontrado"}, status=401)
+
+    try:
+        user = User.objects.get(tokenSessions=token)
+    except User.DoesNotExist:
+        return JsonResponse({"error": "Token inválido"}, status=401)
+
+    favoritos = Like.objects.filter(user=user).select_related('jugador')
+    data = [{
+        "id": fav.jugador.id,
+        "nombreJ": fav.jugador.nombreJ,
+        "posicionJ": fav.jugador.posicionJ,
+        "imagenJ": fav.jugador.imagenJ
+    } for fav in favoritos]
+
+    return JsonResponse({"favoritos": data}, status=200)
