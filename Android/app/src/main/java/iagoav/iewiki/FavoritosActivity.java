@@ -23,6 +23,7 @@ public class FavoritosActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView;
     private RequestQueue queue;
+    private String token;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,13 +35,25 @@ public class FavoritosActivity extends AppCompatActivity {
         queue = Volley.newRequestQueue(this);
 
         SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
-        String token = prefs.getString("token", null);
+        token = prefs.getString("token", null);
 
         if (token == null) {
             Toast.makeText(this, "Token no encontrado", Toast.LENGTH_SHORT).show();
             return;
         }
 
+        cargarFavoritos();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (token != null) {
+            cargarFavoritos();
+        }
+    }
+
+    private void cargarFavoritos() {
         String url = "http://10.0.2.2:8000/favoritos/";
 
         JsonObjectRequest request = new JsonObjectRequest(
@@ -85,4 +98,3 @@ public class FavoritosActivity extends AppCompatActivity {
         queue.add(request);
     }
 }
-

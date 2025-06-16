@@ -1,7 +1,9 @@
 package iagoav.iewiki;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Toast;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -27,6 +29,15 @@ public class JugadoresActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_jugadores);
+
+
+        findViewById(R.id.btnMisJugadores).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(JugadoresActivity.this, FavoritosActivity.class);
+                startActivity(intent);
+            }
+        });
 
         recyclerView2 = findViewById(R.id.RecyclerJ);
         recyclerView2.setLayoutManager(new LinearLayoutManager(this));
@@ -60,8 +71,7 @@ public class JugadoresActivity extends AppCompatActivity {
                             String posicionJ = jugadorObj.getString("posicionJ");
                             String imagenJ = jugadorObj.getString("imagenJ");
 
-
-                            jugadoresList.add(new JugadoresDTO(id,nombreJ, posicionJ,imagenJ));
+                            jugadoresList.add(new JugadoresDTO(id, nombreJ, posicionJ, imagenJ));
                         }
 
                         RecyclerViewAdapterJugadores adapter = new RecyclerViewAdapterJugadores(jugadoresList);
