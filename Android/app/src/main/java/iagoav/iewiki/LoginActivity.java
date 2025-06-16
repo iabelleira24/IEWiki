@@ -68,7 +68,7 @@ public class LoginActivity extends AppCompatActivity {
                                 public void onResponse(JSONObject response) {
                                     try {
                                         String token = response.getString("token");
-                                        SharedPreferences prefs = getSharedPreferences("app", MODE_PRIVATE);
+                                        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
                                         prefs.edit().putString("token", token).apply();
 
                                         Intent intent = new Intent(context, MainActivity.class);
