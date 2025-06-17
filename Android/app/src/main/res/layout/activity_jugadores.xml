@@ -19,6 +19,30 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <TextView
+        android:id="@+id/votos"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0"
+        android:textSize="18sp"
+        android:padding="16dp"
+        app:layout_constraintBottom_toTopOf="@id/RecyclerJ"
+        app:layout_constraintStart_toEndOf="@+id/btnVotos"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
+    <Button
+        android:id="@+id/btnVotos"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Votos"
+        android:textSize="18sp"
+        android:padding="16dp"
+        app:layout_constraintBottom_toTopOf="@id/RecyclerJ"
+        app:layout_constraintStart_toEndOf="@+id/textViewTitle2"
+        app:layout_constraintTop_toTopOf="parent" />
+
+
 
     <Button
         android:id="@+id/btnMisJugadores"
@@ -27,9 +51,9 @@
         android:text="Mis Jugadores"
         android:textSize="14sp"
         android:padding="8dp"
-        app:layout_constraintTop_toTopOf="@id/textViewTitle2"
-        app:layout_constraintBottom_toBottomOf="@id/textViewTitle2"
-        app:layout_constraintStart_toEndOf="@id/textViewTitle2"
+        app:layout_constraintTop_toTopOf="@id/btnVotos"
+        app:layout_constraintBottom_toBottomOf="@id/btnVotos"
+        app:layout_constraintStart_toEndOf="@id/btnVotos"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginEnd="16dp"/>
 

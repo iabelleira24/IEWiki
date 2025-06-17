@@ -1,7 +1,9 @@
 package iagoav.iewiki;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.view.View;
 
@@ -24,18 +26,43 @@ public class JugadoresActivity extends AppCompatActivity {
 
     private RecyclerView recyclerView2;
     private RequestQueue queue2;
+    private TextView textViewVotos;
+    private String token;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_jugadores);
 
+        textViewVotos = findViewById(R.id.votos);
+
+        SharedPreferences prefs = getSharedPreferences("session", MODE_PRIVATE);
+        token = prefs.getString("token", null);
+
+        if (token == null) {
+            Toast.makeText(this, "Token no encontrado", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        int equipoId = getIntent().getIntExtra("id", -1);
+        if (equipoId == -1) {
+            Toast.makeText(this, "ID de equipo no válido", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         findViewById(R.id.btnMisJugadores).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 Intent intent = new Intent(JugadoresActivity.this, FavoritosActivity.class);
                 startActivity(intent);
+            }
+        });
+
+        findViewById(R.id.btnVotos).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String url = "http://10.0.2.2:8000/equipo/"+ equipoId +"/upvote";
+
+
             }
         });
 
@@ -46,11 +73,7 @@ public class JugadoresActivity extends AppCompatActivity {
         String nombreE = getIntent().getStringExtra("name");
         Toast.makeText(this, "Cargando jugadores de: " + nombreE, Toast.LENGTH_SHORT).show();
 
-        int equipoId = getIntent().getIntExtra("id", -1);
-        if (equipoId == -1) {
-            Toast.makeText(this, "ID de equipo no válido", Toast.LENGTH_SHORT).show();
-            return;
-        }
+
 
         String url = "http://10.0.2.2:8000/equipo/" + equipoId + "/jugadores";
 
@@ -60,6 +83,7 @@ public class JugadoresActivity extends AppCompatActivity {
                 null,
                 response -> {
                     try {
+                        JSONObject puntosObj = response.getJSONObject("votos");
                         JSONArray jugadoresArray = response.getJSONArray("jugadores");
                         List<JugadoresDTO> jugadoresList = new ArrayList<>();
 
@@ -71,8 +95,11 @@ public class JugadoresActivity extends AppCompatActivity {
                             String posicionJ = jugadorObj.getString("posicionJ");
                             String imagenJ = jugadorObj.getString("imagenJ");
 
+
                             jugadoresList.add(new JugadoresDTO(id, nombreJ, posicionJ, imagenJ));
                         }
+                        int votos = puntosObj.getInt("votos");
+                        textViewVotos.setText(votos);
 
                         RecyclerViewAdapterJugadores adapter = new RecyclerViewAdapterJugadores(jugadoresList);
                         recyclerView2.setAdapter(adapter);
