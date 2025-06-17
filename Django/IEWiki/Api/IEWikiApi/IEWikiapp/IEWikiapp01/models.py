@@ -7,6 +7,7 @@ class Equipo(models.Model):
     entrenador = models.CharField(max_length=100)
     entrenador2 = models.CharField(max_length=100, null=True)
     imagen = models.CharField(max_length=500)
+    votos = models.IntegerField(default=0)
 
 
     def __str__(self):

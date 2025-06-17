@@ -168,7 +168,10 @@ def jugadores_por_equipo(request, equipo_id):
             "imagenJ": imagen_url
         })
 
-    return JsonResponse({"jugadores": data}, status=200)
+    equipo = Equipo.objects.filter(id=equipo_id).first()
+    votos = equipo.votos if equipo is not None else 0
+
+    return JsonResponse({"jugadores": data, "votos": votos}, status=200)
 
 
 
@@ -344,3 +347,27 @@ def favoritos(request):
     } for fav in favoritos]
 
     return JsonResponse({"favoritos": data}, status=200)
+
+@csrf_exempt
+def votar_equipo(request, equipo_id):
+    if request.method != "POST":
+        return JsonResponse({"error": "Método HTTP no soportado"}, status=405)
+
+    token = request.headers.get('token')
+    if not token:
+        return JsonResponse({"error": "Token no encontrado"}, status=401)
+
+    try:
+        user = User.objects.get(tokenSessions=token)
+    except User.DoesNotExist:
+        return JsonResponse({"error": "Token inválido"}, status=401)
+    
+    try:
+        equipo = Equipo.objects.get(id=equipo_id)
+    except Equipo.DoesNotExist:
+        return JsonResponse({"error": "Equipo no encontrado"}, status=404)
+
+    equipo.votos = equipo.votos + 1
+    equipo.save()
+
+    return JsonResponse({"status": "ok"}, status=201)
