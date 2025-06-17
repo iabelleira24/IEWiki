@@ -115,9 +115,6 @@ def jugadores(request):
     jugadores = Jugador.objects.all()
     data = [{"id": jugador.id,
              "nombreJ":jugador.nombreJ,
-             "posicionJ":jugador.posicionJ,
-             "supertecnicaJ":jugador.supertecnicaJ,
-             "equipoJ":jugador.equipoJ.nombreE,
              "imagenJ": jugador.imagenJ
              } for jugador in jugadores]
 
