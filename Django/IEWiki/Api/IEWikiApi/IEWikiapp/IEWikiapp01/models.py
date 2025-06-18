@@ -58,9 +58,13 @@ class VideojuegoEquipo(models.Model):
 
 
 class User(models.Model):
+
     username = models.CharField(max_length=50, unique= True)
     password = models.CharField(max_length=130)
     tokenSessions =  models.CharField(max_length=64, blank=True, null=True)
+
+
+
 
     def __str__(self):
         return str(self.username)
@@ -72,3 +76,16 @@ class Like(models.Model):
 
     class Meta:
         unique_together = ('user', 'jugador')
+
+
+class Supertecnica (models.Model):
+
+    nombre = models.CharField (max_length=50)
+    descripcion = models.CharField(max_length=200)
+
+
+    def __str__(self):
+        return self.nombre
+
+
+

@@ -1,5 +1,6 @@
 import json
 import secrets
+import token
 from urllib import request
 
 from django.contrib.auth.hashers import check_password
@@ -7,17 +8,18 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.template.defaulttags import now
 from django.views.decorators.csrf import csrf_exempt
-from datetime import date
-from .models import Jugador, Equipo, User, Like
+from datetime import date, datetime
+from .models import Jugador, Equipo, User, Like, Videojuego, Supertecnica
 
 
 @csrf_exempt
 def juego_1(request, precio):
     if request.method != "GET":
         return JsonResponse({"error": "HTTP method not supported"}, status=405)
-
+    # 405 Method Not Allowed: Método HTTP no soportado para esta ruta
 
     return JsonResponse({}, status=200)
+    # 200 OK: Petición exitosa
 
 @csrf_exempt
 def juego_2(request, id, precio):
@@ -85,7 +87,7 @@ def jugador(request, id):
         j = Jugador.objects.get(id=id)
     except Jugador.DoesNotExist:
         return JsonResponse({"error": "Jugador not found."}, status=404)
-
+        # 404 Not Found: Recurso no encontrado
     token = request.headers.get('token')
     favorito = False
 
@@ -152,20 +154,43 @@ def jugadores_por_equipo(request, equipo_id):
     if request.method != "GET":
         return JsonResponse({"error": "Método HTTP no soportado"}, status=405)
 
-    jugadores = Jugador.objects.filter(equipoJ__id=equipo_id)
-    data = []
+    token = request.headers.get('token')
+    if not token:
+        return JsonResponse({"error": "Token no encontrado"}, status=401)
+        # 401 Unauthorized: Falta token para autorización
 
-    for jugador in jugadores:
+    try:
+        user = User.objects.get(tokenSessions=token)
+    except User.DoesNotExist:
+        return JsonResponse({"error": "Token inválido"}, status=401)
+        # 401 Unauthorized: Token inválido
+    data = json.loads(request.body)
+    jugador_id = data.get("jugadorId")
+    jugador = Jugador.objects.get(id=jugador_id)
+    like = request.GET.get('like', '')
+
+    jugadores = Jugador.objects.filter(equipoJ__id=equipo_id)
+    like = Like.objects.filter(user=user, jugador=jugador).first()
+    if not like:
         imagen_url = jugador.imagenJ
 
-        data.append({
+        data = [{
             "id": jugador.id,
             "nombreJ": jugador.nombreJ,
             "posicionJ": jugador.posicionJ,
             "imagenJ": imagen_url
-        })
+        } for jugador in jugadores]
 
-    return JsonResponse({"jugadores": data}, status=200)
+        return JsonResponse({"jugadores": data}, status=200)
+    favoritos = Like.objects.filter(user=user).select_related('jugador')
+    data = [{
+        "id": fav.jugador.id,
+        "nombreJ": fav.jugador.nombreJ,
+        "posicionJ": fav.jugador.posicionJ,
+        "imagenJ": fav.jugador.imagenJ
+    } for fav in favoritos]
+
+    return JsonResponse({"favoritos": data}, status=200)
 
 
 
@@ -187,7 +212,7 @@ def vecinos (request):
 
 
 @csrf_exempt
-def presidentes (request):
+def presidentes(request):
     if request.method != "POST":
         return JsonResponse({"error": "Método HTTP no soportado"}, status=405)
 
@@ -196,14 +221,14 @@ def presidentes (request):
     apellidos = json_data['apellidos']
     agendaPolitica = json_data['agendaPolitica']
     objetivo = agendaPolitica.get('objetivo', 'No especificado')
-    fechaNacimiento = json_data['fechaNacimiento']
+    fechaNacimiento = json_data['fechaNacimiento']  # formato: "YYYY-MM-DD"
 
+    año_nacimiento = int(fechaNacimiento.split("-")[0])
+    año_actual = datetime.now().year
+    edad = año_actual - año_nacimiento
 
-
-
-    print (f"{nombre} {apellidos} su objetivo político es {objetivo}  . Ahora tiene {- int(fechaNacimiento [6] + fechaNacimiento [7] + fechaNacimiento [8] + fechaNacimiento [9])}")
+    print(f"{nombre} {apellidos} su objetivo político es {objetivo}. Nació en {año_nacimiento} y tiene {edad} años.")
     return JsonResponse({})
-
 
 
 @csrf_exempt
@@ -242,7 +267,7 @@ def user(request):
 
 
     return JsonResponse({"mensaje":"Se ha creado el usuario correctamente"}, status= 201)
-
+    # 201 Created: Recurso creado exitosamente
 
 
 
@@ -257,6 +282,7 @@ def sessions(request):
         password = data.get("password")
     except:
         return JsonResponse({"error": "Solicitud inválida"}, status=400)
+        # 400 Bad Request: Solicitud inválida o mal formada
 
     user = User.objects.filter(username=username).first()
     if user is None:
@@ -264,6 +290,7 @@ def sessions(request):
 
     if user.password != password:
         return JsonResponse({"error": "Contraseña incorrecta"}, status=403)
+        # 403 Forbidden: Acceso denegado, contraseña incorrecta
 
     token = secrets.token_hex(32)
     user.tokenSessions = token
@@ -280,11 +307,13 @@ def like(request):
     token = request.headers.get('token')
     if not token:
         return JsonResponse({"error": "Token no encontrado"}, status=401)
+        # 401 Unauthorized: Falta token para autorización
 
     try:
         user = User.objects.get(tokenSessions=token)
     except User.DoesNotExist:
         return JsonResponse({"error": "Token inválido"}, status=401)
+        # 401 Unauthorized: Token inválido
 
     try:
         data = json.loads(request.body)
@@ -341,3 +370,136 @@ def favoritos(request):
     } for fav in favoritos]
 
     return JsonResponse({"favoritos": data}, status=200)
+
+
+@csrf_exempt
+def filtrados(request, equipo_id):
+    if request.method != "GET":
+        return JsonResponse({"error": "HTTP method not supported"}, status=405)
+
+    posicion = request.GET.get('posicion')
+    if not posicion:
+        return JsonResponse({"error": "Falta el parámetro 'posicion'"}, status=400)
+
+    jugadores = Jugador.objects.filter(equipoJ__id=equipo_id, posicionJ=posicion)
+
+    data = [{
+        "id": jugador.id,
+        "nombre": jugador.nombreJ,
+        "posicion": jugador.posicionJ
+    } for jugador in jugadores]
+
+    return JsonResponse({"jugadores_filtrados": data}, status=200)
+
+
+@csrf_exempt
+def crear_videojuego(request):
+    if request.method != "POST":
+        return JsonResponse({"error": "HTTP method not supported"}, status=405)
+
+    data = json.loads(request.body)
+    nombre = data.get("nombre")
+    jugador_id = data.get("jugador_id")
+    equipo_id = data.get("equipo_id")
+    plataforma = data.get("plataforma")
+
+    try:
+        jugador = Jugador.objects.get(id=jugador_id)
+        equipo = Equipo.objects.get(id=equipo_id)
+    except (Jugador.DoesNotExist, Equipo.DoesNotExist):
+        return JsonResponse({"error": "Jugador o equipo no encontrado"}, status=404)
+
+    Videojuego.objects.create(
+        nombreVideojuego=nombre,
+        jugador=jugador,
+        equipo=equipo,
+        plataforma=plataforma
+    )
+
+    return JsonResponse({"mensaje": "Videojuego creado correctamente"}, status=201)
+
+
+@csrf_exempt
+def actualizar_supertecnica(request, id):
+    if request.method != "PUT":
+        return JsonResponse({"error": "Método no soportado"}, status=405)
+
+    token = request.headers.get("token")
+    if not token:
+        return JsonResponse({"error": "Token no proporcionado"}, status=401)
+
+    try:
+        user = User.objects.get(tokenSessions=token)
+    except User.DoesNotExist:
+        return JsonResponse({"error": "Token inválido"}, status=401)
+
+    data = json.loads(request.body)
+    nueva_tec = data.get("supertecnica")
+
+    try:
+        jugador = Jugador.objects.get(id=id)
+    except Jugador.DoesNotExist:
+        return JsonResponse({"error": "Jugador no encontrado"}, status=404)
+
+    jugador.supertecnicaJ = nueva_tec
+    jugador.save()
+
+    return JsonResponse({"mensaje": "Supertecnica actualizada", "supertecnica": nueva_tec}, status=200)
+
+
+@csrf_exempt
+def videojuego_filtrado(request, nombreVideojuego, plataforma):
+    if request.method != "GET":
+        return JsonResponse({"error": "HTTP method not supported"}, status=405)
+
+    videojuegos = Videojuego.objects.filter(nombreVideojuego=nombreVideojuego, plataforma=plataforma)
+
+    data = [{
+        "nombreVideojuego": videojuego.nombreVideojuego,
+        "plataforma": videojuego.plataforma
+    } for videojuego in videojuegos]
+
+    return JsonResponse({"videojuego_filtrado": data}, status=200)
+
+
+@csrf_exempt
+def supertecnica(request):
+    if request.method != "GET":
+        return JsonResponse({"error": "HTTP method not supported"}, status=405)
+
+    supertecnicas = Supertecnica.objects.all()
+    data = [{
+             "nombre": supertecnica.nombre,
+             "descripcion": supertecnica.descripcion
+            } for supertecnica in supertecnicas]
+
+    return JsonResponse({"supertecnicas": data}, status=200)
+
+
+@csrf_exempt
+def user_username(request, username):
+    if request.method != "GET":
+        return JsonResponse({"error": "HTTP method not supported"}, status=405)
+
+    token = request.headers.get("token")
+
+    data = json.loads(request.body)
+
+    username = data.get("username")
+    try:
+        user = User.objects.get(username = username)
+    except User.DoesNotExist:
+        return JsonResponse({"error": "User no encontrado"}, status=404)
+
+    user = User.objects.get(tokenSessions=token)
+    isLoggedIn = True
+    if user is None:
+        isLoggedIn = False
+        return JsonResponse({"username": username, isLoggedIn : isLoggedIn}, status=200)
+
+    data = [{
+        "username": user.username,
+        "isLoggedIn": isLoggedIn
+    }]
+
+    return JsonResponse({"user": data}, status=200)
